@@ -2,18 +2,24 @@ const {createUser, checkEmail, checkFeilds} = require("../models/userModel");
 const bcrypt = require("bcrypt");
 
 const registerUser = async (req, res)=>{//req= options
-    const checkFeilds = (email, password)=>{
-        if(!req.body.email){
-        return callback(new Error("Email is missing. Please enter email"))
+    const checkFeilds = (email, password, callback)=>{
+        if(!req.body.email && !req.body.password){
+            return callback(new Error("Both email and password are missing"));
         }
         else if(!req.body.password){
             return callback(new Error("Password is missing. Please enter password"))
         }
-        else if(!req.body.email && !req.body.password){
-            return callback(new Error("Both email and password are missing"))
+        else if (!req.body.email) {
+            return callback(new Error("Email is missing. Please enter email"));
         }
 }
-    checkFeilds(req.body.email, req.body.password);
+    checkFeilds(req.body.email, req.body.password, (err, result)=>{
+        if(err){
+            return res.status(500).json({
+              message: err.message,
+            });
+        }
+    });
     const hashed_password = await bcrypt.hash(req.body.password,10);
     const userData = {
         email: req.body.email,
