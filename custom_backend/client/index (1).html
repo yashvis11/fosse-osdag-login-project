@@ -115,6 +115,7 @@ async function request(path, options = {}) {
   }
   const res = await fetch(base() + path, options);
   let body;
+  <!--body sent by the backend to the browser i.e., res.body-->
   try { body = await res.json(); } catch (e) { body = await res.text(); }
   return { status: res.status, body };
 }
@@ -125,7 +126,7 @@ async function doRegister() {
   const result = await request('/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password })<!--body sent by the browser to backend i.e., req.body now options.body-->
   });
   log('POST /register', result);
 }
