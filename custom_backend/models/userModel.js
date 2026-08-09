@@ -1,15 +1,13 @@
 const db = require("../config/db_connection")
 
 const checkEmail = (email, callback) => {
-  const emailQuery = `SELECT * FROM Users WHERE email = $1`;
+  const emailQuery = `SELECT * FROM Users WHERE user_email = $1`;
 
   db.query(emailQuery, [email], (err, result) => {
     if (err) {
       return callback(err, null);
     }
-    if (result.len > 0) {
-      return callback(new Error("Email already registered"), null);
-    }
+    callback(null, result);
   });
 };
 
