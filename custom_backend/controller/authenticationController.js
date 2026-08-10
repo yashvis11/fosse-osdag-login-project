@@ -116,4 +116,17 @@ const loginUser = async (req, res)=>{
         })
       })
 }
-module.exports = {registerUser, loginUser};
+const getProfile = async(req, res) =>{
+  const user_id_derived = req.user.user_id;
+  getUser(user_id_derived, (err, result)=>{
+    if(err){
+      return res.status(500).json({
+        message: "Database error"
+      })
+    }
+    return res.status(200).json({//if everything is verified then send the user's details in response
+      user: result.rows[0]
+    })
+  })
+}
+module.exports = {registerUser, loginUser, getProfile};

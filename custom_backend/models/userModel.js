@@ -22,5 +22,12 @@ const createUser=(userData, callback)=>{
     callback(err, result);
   });
 }
-module.exports = {createUser, checkEmail};
+const getUser = (user_id, callback) =>{
+  const profileQuery = `SELECT user_id, user_email FROM Users WHERE user_id = $1`
+
+  db.query(profileQuery, [user_id], (err, result) =>{
+    callback(err, result)
+  })
+}
+module.exports = { createUser, checkEmail, getUser};
 
