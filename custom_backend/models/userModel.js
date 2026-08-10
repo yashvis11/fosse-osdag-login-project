@@ -23,11 +23,22 @@ const createUser=(userData, callback)=>{
   });
 }
 const getUser = (user_id, callback) =>{
-  const profileQuery = `SELECT user_id, user_email FROM Users WHERE user_id = $1`
+  const profileQuery = `SELECT user_id, user_email, fullname,
+            displayname,
+            bio,
+            createdat,
+            role FROM Users WHERE user_id = $1`;
 
   db.query(profileQuery, [user_id], (err, result) =>{
     callback(err, result)
   })
 }
-module.exports = { createUser, checkEmail, getUser};
+const getFileAll = (user_id, callback) =>{
+  const fileAllQuery = `SELECT * FROM Files WHERE user_id = $1`;
+
+  db.query(fileAllQuery, [user_id], (err, result)=>{
+    callback(err, result);
+  })
+}
+module.exports = { createUser, checkEmail, getUser, getFileAll};
 

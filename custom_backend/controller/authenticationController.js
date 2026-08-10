@@ -1,4 +1,4 @@
-const {createUser, checkEmail, getUser} = require("../models/userModel");
+const {createUser, checkEmail, getUser, getFileAll} = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -121,7 +121,8 @@ const getProfile = async(req, res) =>{
   getUser(user_id_derived, (err, result)=>{
     if(err){
       return res.status(500).json({
-        message: "Database error"
+        message: "Database error",
+        error: err.message
       })
     }
     return res.status(200).json({//if everything is verified then send the user's details in response
@@ -129,4 +130,18 @@ const getProfile = async(req, res) =>{
     })
   })
 }
-module.exports = {registerUser, loginUser, getProfile};
+const getFiles = async(req, res) => {
+  const user_id = req.user.user_id;
+
+  getFileAll(user_id, (err, result)=>{
+    if(err){
+      return res.status(500).json({
+        message:"Database error"
+      })
+    }
+    return res.status(200).json({
+      files: result.rows //returns all the files not just the first one so [0] is not used 
+    })
+  })
+}
+module.exports = {registerUser, loginUser, getProfile, getFiles};
