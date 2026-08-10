@@ -3,7 +3,7 @@ const express = require("express");
 
 const router = express.Router();
 
-const {registerUser, loginUser, getProfile, getFiles}= require("../controller/authenticationController");
+const {registerUser, loginUser, getProfile, getFiles, getFileId}= require("../controller/authenticationController");
 const {verifyToken} = require("../middleware/authenticationMiddleware");
 
 
@@ -13,4 +13,5 @@ router.post("/register", registerUser);
 router.post("/login", loginUser)
 router.get("/me", verifyToken, getProfile)
 router.get("/files", verifyToken, getFiles)
+router.get("/files/:id", verifyToken, getFileId)
 module.exports = router; 
