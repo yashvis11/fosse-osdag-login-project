@@ -23,13 +23,30 @@ const createUser=(userData, callback)=>{
   });
 }
 
+const verifyLock = (userId, callback) =>{
+  const verifyLockQuery = `SELECT locked_until > NOW() AS is_locked FROM Users WHERE user_id = $1`
+
+  db.query(verifyLockQuery, [userId], (err, result)=>{
+    callback(err, result)
+  })
+}
+
 const increaseFailedAttempt = (userId, callback) =>{
   console.log("user id", userId);
+  /*RETURNING is used as the update query does not return a value bu rowCount stating how many rows were 
+  updated, here it helps us get the number of failed attempts*/
   const increaseAttemptQuery = `UPDATE Users SET failed_login_attempts = failed_login_attempts + 1
-  WHERE user_id = $1`;
+  WHERE user_id = $1 RETURNING failed_login_attempts`;
 
   db.query(increaseAttemptQuery, [userId], (err, result)=>{
-    console.log(result)
+    callback(err, result)
+  })
+}
+
+const lockUser = (userId, callback) =>{
+  const lockUserQuery = `UPDATE Users SET locked_until = NOW() + INTERVAL '5 minutes' WHERE user_id = $1`
+
+  db.query(lockUserQuery, [userId], (err, result)=>{
     callback(err, result)
   })
 }
@@ -67,5 +84,5 @@ const getFileById = (userId, fileId, callback) =>{
   })
 }
 module.exports = { createUser, checkEmail, getUser, getFileAll, checkForFile, 
-getFileById, increaseFailedAttempt};
+getFileById, verifyLock, increaseFailedAttempt, lockUser};
 
