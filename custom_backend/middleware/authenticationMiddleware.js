@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const verifyToken = (req, res, next) =>{
     if(!req.headers.authorization){
         return res.status(400).json({
-            message: "Authorization required"
+            message: "User is not logged in"
         })
     }
     const userToken = req.headers.authorization.split(" ")[1];//seperate the word Bearer and the token

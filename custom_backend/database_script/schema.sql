@@ -5,7 +5,7 @@
  fullName VARCHAR(50), displayName VARCHAR(50), 
  bio TEXT, createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, role VARCHAR(10) DEFAULT 'user');
 
-  CREATE TABLE Files(file_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, user_id INT NOT NULL, 
-  file_name VARCHAR(100) NOT NULL, mime_type VARCHAR(100) NOT NULL, sizeBytes INT, 
-  uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-  CONSTRAINT fk_user_id_for_file FOREIGN KEY (user_id) REFERENCES Users(user_id));
+CREATE TABLE Files(file_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, user_id INT NOT NULL, 
+file_path TEXT NOT NULL, file_name VARCHAR(100) NOT NULL, mime_type VARCHAR(100) NOT NULL, sizeBytes INT, 
+uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+CONSTRAINT fk_user_id_for_file FOREIGN KEY (user_id) REFERENCES Users(user_id));

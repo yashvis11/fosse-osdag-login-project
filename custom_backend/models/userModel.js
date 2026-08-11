@@ -40,5 +40,19 @@ const getFileAll = (user_id, callback) =>{
     callback(err, result);
   })
 }
-module.exports = { createUser, checkEmail, getUser, getFileAll};
+const checkForFile = (fileId, callback) =>{
+  const checkFileQuery = `SELECT * FROM Files WHERE file_id = $1`
+
+  db.query(checkFileQuery, [fileId], (err, result)=>{
+    callback(err, result)
+  })
+}
+const getFileById = (userId, fileId, callback) =>{
+  const fileIdQuery = `SELECT * FROM Files WHERE user_id = $1 AND file_id= $2`
+
+  db.query(fileIdQuery, [userId, fileId], (err, result)=>{
+    callback(err, result);
+  })
+}
+module.exports = { createUser, checkEmail, getUser, getFileAll, checkForFile, getFileById};
 
