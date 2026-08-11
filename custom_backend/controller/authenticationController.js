@@ -1,4 +1,5 @@
-const {createUser, checkEmail, getUser, getFileAll, checkForFile, getFileById} = require("../models/userModel");
+const {createUser, checkEmail, getUser, getFileAll, checkForFile, 
+getFileById, increaseFailedAttempt} = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const path = require("path");
@@ -90,20 +91,28 @@ const loginUser = async (req, res)=>{
         return res.status(401).json({
           message:"Invalid email or password"
         })
-        
       }
       //if user is found get all the details related to that user 
       //this user is different that userData and is contains the details stored in the database
         const user = result.rows[0];
+        console.log(user);
+
         //check password to ensure nobody else can login for another user
         const passwordCheck = await bcrypt.compare(
           userData.password,//request sent password
           user.password_hash//one in the database, the hashed one
         );
         if(!passwordCheck){
-          return res.status(401).json({
-            message:"Invalid email or password"
-          })
+          return increaseFailedAttempt(user.user_id, (err, result) => {
+            if (err) {
+              return res.status(500).json({
+                message: "Error in increasing number of failed attempts",
+              });
+            }
+            return res.status(401).json({
+              message: "Invalid email or password",
+            });
+          });
         }
         //if both password and email are correct store the user's id for further process
         const user_id_found = user.user_id;

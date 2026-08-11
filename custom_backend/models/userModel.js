@@ -22,6 +22,18 @@ const createUser=(userData, callback)=>{
     callback(err, result);
   });
 }
+
+const increaseFailedAttempt = (userId, callback) =>{
+  console.log("user id", userId);
+  const increaseAttemptQuery = `UPDATE Users SET failed_login_attempts = failed_login_attempts + 1
+  WHERE user_id = $1`;
+
+  db.query(increaseAttemptQuery, [userId], (err, result)=>{
+    console.log(result)
+    callback(err, result)
+  })
+}
+
 const getUser = (user_id, callback) =>{
   const profileQuery = `SELECT user_id, user_email, fullname,
             displayname,
@@ -54,5 +66,6 @@ const getFileById = (userId, fileId, callback) =>{
     callback(err, result);
   })
 }
-module.exports = { createUser, checkEmail, getUser, getFileAll, checkForFile, getFileById};
+module.exports = { createUser, checkEmail, getUser, getFileAll, checkForFile, 
+getFileById, increaseFailedAttempt};
 
