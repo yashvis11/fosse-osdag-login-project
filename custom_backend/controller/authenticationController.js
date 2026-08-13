@@ -42,7 +42,6 @@ const registerUser = async (req, res)=>{//req= options
       //create user if email doesn't exist
       createUser(userData, (err, result) => {
         if (err) {
-          console.log("Registration error", err);
           return res.status(500).json({
             message: "Unable to register user",
             error: err.message,
@@ -104,7 +103,6 @@ const loginUser = async (req, res) => {
     // Check whether the account is locked
     //all the login code will be inside verifyLock's callback as login cannot continue if the user is locked
     return verifyLock(user.user_id, async (err, result) => {
-      console.log("Entered verify lock");
 
       if (err) {
         return res.status(500).json({
@@ -140,7 +138,7 @@ const loginUser = async (req, res) => {
           // Get the UPDATED number of attempts
           const failedAttempts = result.rows[0].failed_login_attempts;
 
-          console.log("Total attempts:", failedAttempts);
+          
 
           
           if (failedAttempts >= 5) {

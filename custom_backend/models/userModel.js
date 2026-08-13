@@ -32,7 +32,6 @@ const verifyLock = (userId, callback) =>{
 }
 
 const increaseFailedAttempt = (userId, callback) =>{
-  console.log("user id", userId);
   /*RETURNING is used as the update query does not return a value bu rowCount stating how many rows were 
   updated, here it helps us get the number of failed attempts*/
   const increaseAttemptQuery = `UPDATE Users SET failed_login_attempts = failed_login_attempts + 1
