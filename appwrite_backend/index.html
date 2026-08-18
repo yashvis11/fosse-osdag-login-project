@@ -91,7 +91,7 @@
 <script type="module" src="appwrite-adapter.js"></script> <!-- type=module and it is using imports -->
 
 <script type="module"> //as adpater-js is an ES-module therefore the client script also needs to be a module
-import {registerUser, loginUser, logoutUser} from "./appwrite-adapter.js"
+import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite} from "./appwrite-adapter.js"
 
 //get the selected backend mode
 function checkBackendMode(){
@@ -133,7 +133,7 @@ async function doRegister() {
 
   if(mode=="appwrite"){
     const resultRegister = await registerUser(email, password);
-    log("Appwrite registration", resultRegister)
+    log("Registration successful!", resultRegister)
     return;
   }
   const result = await request('/register', {
@@ -150,6 +150,7 @@ async function doLogin() {
   const mode = checkBackendMode()
   if(mode == "appwrite"){
     const resultLogin = await loginUser(email, password)
+    log("Login successful!", resultLogin)
     return;
   }
 
@@ -171,7 +172,7 @@ async function doLogout() {
   if(mode == "appwrite"){
     const resultLogout = await logoutUser()
     document.getElementById('token').value = '';
-    console.log("Logout successful")
+    log("Logout successful!", "Session cleared")
 
     return
   }
@@ -181,17 +182,39 @@ async function doLogout() {
 }
 
 async function getMe() {
+  const mode = checkBackendMode();
+
+  if(mode == "appwrite"){
+    const profileResult = await getProfile();
+    log("Profile successfully fetched!", profileResult);
+    return
+  }
   const result = await request('/me', { method: 'GET' });
   log('GET /me', result);
 }
 
 async function getFiles() {
+  const mode = checkBackendMode()
+
+  if(mode == "appwrite"){
+    const resultAllFiles = await getAllFiles();
+    log("Files fetched successfully", resultAllFiles)
+    return
+  }
   const result = await request('/files', { method: 'GET' });
   log('GET /files', result);
 }
 
 async function getFileById() {
   const id = document.getElementById('fileId').value;
+  const mode = checkBackendMode()
+
+  if(mode=="appwrite"){
+    const resultFileId = await getFileByIdAppwrite(id)
+    log("File fetched successfully!", resultFileId)
+    return
+  }
+
   const result = await request('/files/' + id, { method: 'GET' });
   log('GET /files/' + id, result);
 }
@@ -221,7 +244,9 @@ window.fillUser = fillUser
 window.doRegister = doRegister //to make it available to the HTML buttons as now the script is a module
 window.doLogin = doLogin
 window.doLogout = doLogout
-
+window.getMe = getMe
+window.getFiles = getFiles
+window.getFileById = getFileById
 </script>
 
 </body>
