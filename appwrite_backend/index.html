@@ -22,8 +22,8 @@
 <fieldset>
   <legend>Backend mode</legend>
   <label><input type="radio" id="mockMode" name="backendMode" value="mock" checked> Mock (in-browser, mock-api.js + seed-data.json) — no backend needed, just to see how the GUI behaves</label>
-  <label><input type="radio" name="backendMode" value="custom"> Custom REST backend (Node/Express or Python) — hits the Base URL below</label>
-  <label><input type="radio" name="backendMode" value="appwrite"> Appwrite (appwrite-adapter.js talks to Appwrite directly via its Web SDK)</label>
+  <label><input type="radio" name="backendMode" value="custom" onclick="fillAppwriteConfig()"> Custom REST backend (Node/Express or Python) — hits the Base URL below</label>
+  <label><input type="radio" name="backendMode" value="appwrite" onclick="fillAppwriteConfig()"> Appwrite (appwrite-adapter.js talks to Appwrite directly via its Web SDK)</label>
 </fieldset>
 
 <fieldset>
@@ -91,11 +91,36 @@
 <script type="module" src="appwrite-adapter.js"></script> <!-- type=module and it is using imports -->
 
 <script type="module"> //as adpater-js is an ES-module therefore the client script also needs to be a module
-import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite} from "./appwrite-adapter.js"
+import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite, downloadFile} from "./appwrite-adapter.js"
 
 //get the selected backend mode
 function checkBackendMode(){
   return document.querySelector('input[name="backendMode"]:checked').value;
+}
+
+function fillAppwriteConfig(){
+  const mode = checkBackendMode()
+
+    if(mode === "mock"){
+      log("Mock backend mode selected", "Please change the backend mode to custom or appwrite")
+    }
+    
+    if(mode === "custom"){
+      document.getElementById("awEndpoint").value = "https://cloud.appwrite.io/v1"
+      document.getElementById("awProjectId").value = "YOUR_PROJECT_ID"
+      document.getElementById("awDatabaseId").value = "YOUR_DATABASE_ID"
+      document.getElementById("awFilesCollectionId").value = "files"
+      document.getElementById("awBucketId").value = "user-files"
+    }
+
+    if(mode === "appwrite"){
+      document.getElementById("awEndpoint").value = import.meta.env.VITE_APPWRITE_ENDPOINT
+      document.getElementById("awProjectId").value = import.meta.env.VITE_APPWRITE_PROJECT_ID
+      document.getElementById("awDatabaseId").value = import.meta.env.VITE_APPWRITE_DATABASE_ID
+      document.getElementById("awFilesCollectionId").value = import.meta.env.VITE_APPWRITE_FILES_TABLE
+      document.getElementById("awBucketId").value = import.meta.env.VITE_APPWRITE_BUCKET_ID
+    }
+    
 }
 
 function base() { return document.getElementById('baseUrl').value.replace(/\/$/, ''); }
@@ -131,6 +156,10 @@ async function doRegister() {
   const password = document.getElementById('regPassword').value;
   const mode = checkBackendMode();
 
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
   if(mode=="appwrite"){
     const resultRegister = await registerUser(email, password);
     log("Registration successful!", resultRegister)
@@ -148,6 +177,11 @@ async function doLogin() {
   const email = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
   const mode = checkBackendMode()
+
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
   if(mode == "appwrite"){
     const resultLogin = await loginUser(email, password)
     log("Login successful!", resultLogin)
@@ -169,6 +203,10 @@ async function doLogin() {
 async function doLogout() {
   const mode = checkBackendMode()
 
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
   if(mode == "appwrite"){
     const resultLogout = await logoutUser()
     document.getElementById('token').value = '';
@@ -184,6 +222,10 @@ async function doLogout() {
 async function getMe() {
   const mode = checkBackendMode();
 
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
   if(mode == "appwrite"){
     const profileResult = await getProfile();
     log("Profile successfully fetched!", profileResult);
@@ -195,6 +237,10 @@ async function getMe() {
 
 async function getFiles() {
   const mode = checkBackendMode()
+
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
 
   if(mode == "appwrite"){
     const resultAllFiles = await getAllFiles();
@@ -209,9 +255,13 @@ async function getFileById() {
   const id = document.getElementById('fileId').value;
   const mode = checkBackendMode()
 
+  if(mode == "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
   if(mode=="appwrite"){
     const resultFileId = await getFileByIdAppwrite(id)
-    log("File fetched successfully!", resultFileId)
+    log("File fetched successfully", resultFileId)
     return
   }
 
@@ -221,6 +271,47 @@ async function getFileById() {
 
 async function downloadFileById() {
   const id = document.getElementById('fileId').value;
+
+  const mode = checkBackendMode()
+
+  if(mode === "mock"){
+    log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+  }
+
+  if(mode === "appwrite"){
+    const resultDownload = await downloadFile(id)
+
+    //if it is an error object
+    if(typeof resultDownload === 'object' && resultDownload.status){
+      log("File download error", {status: resultDownload.status, body: resultDownload.message})
+      return
+    }
+    const res = await fetch(resultDownload.toString(), 
+      {
+          method: 'GET',
+          credentials: 'include'
+      }
+      
+    )
+    const contentType = res.headers.get("content-type");
+
+    if (!res.ok || (contentType && contentType.includes("text/html"))) {
+      log("File download error", {
+        status: res.ok ? 403 : res.status,
+        body: "Unauthorized or file not found in Storage."
+      });
+      return;
+    }
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'file-' + id;
+    a.click();
+    log("Download successful", { status: res.status, note: 'File download triggered.' });
+    return
+  }
+
   const headers = {};
   if (!useCookies() && tokenVal()) headers['Authorization'] = 'Bearer ' + tokenVal();
   const res = await fetch(base() + '/files/' + id + '/download', {
@@ -240,13 +331,19 @@ async function downloadFileById() {
   log('GET /files/' + id + '/download', { status: res.status, note: 'File download triggered.' });
 }
 
+document.addEventListener("DOMContentLoaded", ()=>{
+  fillAppwriteConfig()
+})
+
 window.fillUser = fillUser
+window.fillAppwriteConfig = fillAppwriteConfig
 window.doRegister = doRegister //to make it available to the HTML buttons as now the script is a module
 window.doLogin = doLogin
 window.doLogout = doLogout
 window.getMe = getMe
 window.getFiles = getFiles
 window.getFileById = getFileById
+window.downloadFileById = downloadFileById
 </script>
 
 </body>

@@ -1,8 +1,8 @@
 import { Client, Account, Databases, Storage} from "appwrite";
-
+console.log(document.getElementById("awProjectId").value)
 const client = new Client()
-    .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
-    .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
+  .setEndpoint(document.getElementById("awEndpoint").value)
+  .setProject(document.getElementById("awProjectId").value);
 
 const account = new Account(client);
 const databases = new Databases(client);
