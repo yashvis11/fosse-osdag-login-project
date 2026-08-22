@@ -97,6 +97,22 @@ if the token is invalid then a 401 Unauthorized is sent as response if no tamper
 
 * Another feature I would like to implement is the hybrid verification approach which involves both JWT and session approach to enhance the security of the backend.
 
+## 7. Test Credentials & Seed Data
+
+The database comes pre-populated with 3 test users and their corresponding files, structured according to `seed-data.json` in the root directory.
+
+### Pre-Configured Test Credentials
+
+| User | Email | Password | Seeded Test Files |
+| :--- | :--- | :--- | :--- |
+| **Alice Nakamura** | `alice@example.com` | `Password123!` | *resume_alice.pdf and profile_photo.jpg* |
+| **Bob Alvarez** | `bob@example.com` | `Password123!` | *project_notes.txt and invoice_march.pdf* |
+| **Carol Whitfield** | `carol@example.com` | `Password123!` | *test_plan.docx and vacation.png* |
+
+> **Testing User Data Isolation:** 
+> 1. Log in as **User 1**. You will only see User 1's seeded files.
+> 2. Log out and log in as **User 2**. The dashboard will update to show only User 2's files.
+> 3. Attempting to fetch or modify User 1's resources while authenticated as User 2 will trigger a `401 Forbidden` response.
 
 
 
