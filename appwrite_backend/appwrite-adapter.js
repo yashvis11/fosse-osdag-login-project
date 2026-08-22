@@ -1,54 +1,44 @@
-//the appwrite file already has the account creation method being exported 
-import {account, databases, storage} from "./lib/appwrite"
-import {ID, Query} from "appwrite";
+// import {ID, Query} from "appwrite";
+const { ID, Query } = window.Appwrite;
+
 
 //registration code
-const registerUser = async(email, password)=>{
-    const user = await account.create(
+const registerUser = async(appwriteMethods, email, password)=>{
+    const user = await appwriteMethods.account.create(
         ID.unique(),
         email,
         password
     );
-    return user; //returning it as later the user's ID is needed to make their profile 
+    return {email: user.email}; //returning it as later the user's ID is needed to make their profile 
 }
 
-const loginUser = async(email, password) =>{
-    const session = await account.createEmailPasswordSession(email, password)
+const loginUser = async(appwriteMethods, email, password) =>{
+    const session = await appwriteMethods.account.createEmailPasswordSession(email, password)
 
     return session;
 }
-const logoutUser = async () => {
-  const resultLogout = await account.deleteSession("current");
+const logoutUser = async (appwriteMethods) => {
+  const resultLogout = await appwriteMethods.account.deleteSession("current");
 
   return resultLogout;
 };
 
-const getProfile = async() =>{
+const getProfile = async(appwriteMethods, database_id) =>{
     try{
-        const user = await account.get()
-
-        const profile = await databases.listDocuments(
-            document.getElementById("awDatabaseId").value,
-            import.meta.env.VITE_APPWRITE_PROFILE_TABLE,
-            /*To preserve the auto id of the document in the profile table 
-            we get the info according to the user's id stored in userId */
-            [
-                Query.equal('userId', user.$id)
-            ]
-        );
-        return profile;
+        const user = await appwriteMethods.account.get()
+        return {email: user.email};
     }
     catch(error){
         throw new Error(error.message)
     }
 }
 
-const getAllFiles = async() =>{
-    const user = await account.get()
+const getAllFiles = async(appwriteMethods, database_id, files_table_id) =>{
+    const user = await appwriteMethods.account.get()
 
-    const fileInfo = await databases.listDocuments(
-      document.getElementById("awDatabaseId").value,
-      document.getElementById("awFilesCollectionId").value
+    const fileInfo = await appwriteMethods.databases.listDocuments(
+      database_id,
+      files_table_id,
       /*getDocument will not work as it would need the document's ID
       and each document needs to have a unique id which will not work as a single user can have multiple 
       files(documents)*/
@@ -68,16 +58,15 @@ to be disabled and permissions need to be "Any users"->Read
 
 As this is not the best approach it is not taken into execution the code for the two distinguished errors
 is commented below*/
-const getFileByIdAppwrite = async(fileId) =>{
-  const user = await account.get(); //to ensure user is logged in
+const getFileByIdAppwrite = async(appwriteMethods, database_id, files_table_id, fileId) =>{
+  const user = await appwriteMethods.account.get(); //to ensure user is logged in
   try {
     //getDocument is used as the search is by file id and not user id so each document will have only one id
-    const fileInfoId = await databases.getDocument(
-      document.getElementById("awDatabaseId").value,
-      document.getElementById("awFilesCollectionId").value,
+    const fileInfoId = await appwriteMethods.databases.getDocument(
+      database_id,
+      files_table_id,
       fileId,
     );
-    console.log(fileInfoId)
     return fileInfoId;
   } catch (error) {
     return {
@@ -106,21 +95,21 @@ const getFileByIdAppwrite = async(fileId) =>{
     */
 }
 
-const downloadFile = async (fileId) => {
+const downloadFile = async (appwriteMethods, database_id, files_table_id, fileId, bucketId) => {
 
   try {
-    const user = await account.get();
+    const user = await appwriteMethods.account.get();
 
     //check if the file exists if it does there will be no error 
-    const file = await databases.getDocument(
-      document.getElementById("awDatabaseId").value,
-      document.getElementById("awFilesCollectionId").value,
+    const file = await appwriteMethods.databases.getDocument(
+      database_id,
+      files_table_id,
       fileId,
     );
 
-    const downloadURL = storage.getFileDownload(
-      document.getElementById("awBucketId").value,
-      fileId,
+    const downloadURL = appwriteMethods.storage.getFileDownload(
+      bucketId,
+      fileId
     );
 
     return downloadURL;

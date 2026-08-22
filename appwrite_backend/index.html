@@ -22,8 +22,8 @@
 <fieldset>
   <legend>Backend mode</legend>
   <label><input type="radio" id="mockMode" name="backendMode" value="mock" checked> Mock (in-browser, mock-api.js + seed-data.json) — no backend needed, just to see how the GUI behaves</label>
-  <label><input type="radio" name="backendMode" value="custom" onclick="fillAppwriteConfig()"> Custom REST backend (Node/Express or Python) — hits the Base URL below</label>
-  <label><input type="radio" name="backendMode" value="appwrite" onclick="fillAppwriteConfig()"> Appwrite (appwrite-adapter.js talks to Appwrite directly via its Web SDK)</label>
+  <label><input type="radio" name="backendMode" value="custom" onclick="fillCustom()"> Custom REST backend (Node/Express or Python) — hits the Base URL below</label>
+  <label><input type="radio" name="backendMode" value="appwrite"> Appwrite (appwrite-adapter.js talks to Appwrite directly via its Web SDK)</label>
 </fieldset>
 
 <fieldset>
@@ -88,9 +88,10 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
-<script type="module" src="appwrite-adapter.js"></script> <!-- type=module and it is using imports -->
+<!-- <script type="module" src="appwrite-adapter.js"></script> type=module and it is using imports -->
 
 <script type="module"> //as adpater-js is an ES-module therefore the client script also needs to be a module
+import {configure} from "./lib/appwrite.js"
 import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite, downloadFile} from "./appwrite-adapter.js"
 
 //get the selected backend mode
@@ -98,29 +99,17 @@ function checkBackendMode(){
   return document.querySelector('input[name="backendMode"]:checked').value;
 }
 
+function fillCustom(){
+  document.getElementById("awEndpoint").value = "https://cloud.appwrite.io/v1"
+  document.getElementById("awProjectId").value = "YOUR_PROJECT_ID"
+  document.getElementById("awDatabaseId").value = "YOUR_DATABASE_ID"
+  document.getElementById("awFilesCollectionId").value = "files"
+  document.getElementById("awBucketId").value = "user-files"
+}
+
 function fillAppwriteConfig(){
-  const mode = checkBackendMode()
-
-    if(mode === "mock"){
-      log("Mock backend mode selected", "Please change the backend mode to custom or appwrite")
-    }
-    
-    if(mode === "custom"){
-      document.getElementById("awEndpoint").value = "https://cloud.appwrite.io/v1"
-      document.getElementById("awProjectId").value = "YOUR_PROJECT_ID"
-      document.getElementById("awDatabaseId").value = "YOUR_DATABASE_ID"
-      document.getElementById("awFilesCollectionId").value = "files"
-      document.getElementById("awBucketId").value = "user-files"
-    }
-
-    if(mode === "appwrite"){
-      document.getElementById("awEndpoint").value = import.meta.env.VITE_APPWRITE_ENDPOINT
-      document.getElementById("awProjectId").value = import.meta.env.VITE_APPWRITE_PROJECT_ID
-      document.getElementById("awDatabaseId").value = import.meta.env.VITE_APPWRITE_DATABASE_ID
-      document.getElementById("awFilesCollectionId").value = import.meta.env.VITE_APPWRITE_FILES_TABLE
-      document.getElementById("awBucketId").value = import.meta.env.VITE_APPWRITE_BUCKET_ID
-    }
-    
+    let appwriteMethods = configure(document.getElementById("awEndpoint").value, document.getElementById("awProjectId").value)
+    return appwriteMethods
 }
 
 function base() { return document.getElementById('baseUrl').value.replace(/\/$/, ''); }
@@ -161,7 +150,8 @@ async function doRegister() {
   }
 
   if(mode=="appwrite"){
-    const resultRegister = await registerUser(email, password);
+    let appwriteMethods = fillAppwriteConfig()
+    const resultRegister = await registerUser(appwriteMethods, email, password);
     log("Registration successful!", resultRegister)
     return;
   }
@@ -183,7 +173,8 @@ async function doLogin() {
   }
 
   if(mode == "appwrite"){
-    const resultLogin = await loginUser(email, password)
+    let appwriteMethods = fillAppwriteConfig()
+    const resultLogin = await loginUser(appwriteMethods, email, password)
     log("Login successful!", resultLogin)
     return;
   }
@@ -208,7 +199,8 @@ async function doLogout() {
   }
 
   if(mode == "appwrite"){
-    const resultLogout = await logoutUser()
+    let appwriteMethods = fillAppwriteConfig()
+    const resultLogout = await logoutUser(appwriteMethods)
     document.getElementById('token').value = '';
     log("Logout successful!", "Session cleared")
 
@@ -227,7 +219,8 @@ async function getMe() {
   }
 
   if(mode == "appwrite"){
-    const profileResult = await getProfile();
+    let appwriteMethods = fillAppwriteConfig()
+    const profileResult = await getProfile(appwriteMethods, document.getElementById("awDatabaseId").value,);
     log("Profile successfully fetched!", profileResult);
     return
   }
@@ -243,7 +236,9 @@ async function getFiles() {
   }
 
   if(mode == "appwrite"){
-    const resultAllFiles = await getAllFiles();
+    const appwriteMethods = fillAppwriteConfig()
+    const resultAllFiles = await getAllFiles(appwriteMethods, document.getElementById("awDatabaseId").value,
+    document.getElementById("awFilesCollectionId").value);
     log("Files fetched successfully", resultAllFiles)
     return
   }
@@ -260,7 +255,9 @@ async function getFileById() {
   }
 
   if(mode=="appwrite"){
-    const resultFileId = await getFileByIdAppwrite(id)
+    const appwriteMethods = fillAppwriteConfig()
+    const resultFileId = await getFileByIdAppwrite(appwriteMethods, document.getElementById("awDatabaseId").value, 
+    document.getElementById("awFilesCollectionId").value, id)
     log("File fetched successfully", resultFileId)
     return
   }
@@ -276,10 +273,13 @@ async function downloadFileById() {
 
   if(mode === "mock"){
     log("Mock backend mode is selected", "Please change the mode to custom or appwrite")
+    return
   }
 
   if(mode === "appwrite"){
-    const resultDownload = await downloadFile(id)
+    const appwriteMethods = fillAppwriteConfig()
+    const resultDownload = await downloadFile(appwriteMethods, document.getElementById("awDatabaseId").value, 
+    document.getElementById("awFilesCollectionId").value, id, document.getElementById("awBucketId").value)
 
     //if it is an error object
     if(typeof resultDownload === 'object' && resultDownload.status){
@@ -312,29 +312,28 @@ async function downloadFileById() {
     return
   }
 
-  const headers = {};
-  if (!useCookies() && tokenVal()) headers['Authorization'] = 'Bearer ' + tokenVal();
-  const res = await fetch(base() + '/files/' + id + '/download', {
-    headers,
-    credentials: useCookies() ? 'include' : 'same-origin'
-  });
-  if (!res.ok) {
-    log('GET /files/' + id + '/download', { status: res.status, body: await res.text() });
-    return;
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'file-' + id;
-  a.click();
-  log('GET /files/' + id + '/download', { status: res.status, note: 'File download triggered.' });
+  
+    const headers = {};
+    if (!useCookies() && tokenVal()) headers['Authorization'] = 'Bearer ' + tokenVal();
+    const res = await fetch(base() + '/files/' + id + '/download', {
+      headers,
+      credentials: useCookies() ? 'include' : 'same-origin'
+    });
+    if (!res.ok) {
+      log('GET /files/' + id + '/download', { status: res.status, body: await res.text() });
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'file-' + id;
+    a.click();
+    log('GET /files/' + id + '/download', { status: res.status, note: 'File download triggered.' });
+  
 }
 
-document.addEventListener("DOMContentLoaded", ()=>{
-  fillAppwriteConfig()
-})
-
+window.fillCustom = fillCustom
 window.fillUser = fillUser
 window.fillAppwriteConfig = fillAppwriteConfig
 window.doRegister = doRegister //to make it available to the HTML buttons as now the script is a module
