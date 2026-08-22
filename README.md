@@ -3,16 +3,28 @@
 ## 1. Setup Instructions
 
 ### Custom Backend Setup
-1. Navigate to the `custom_backend` directory:
-   ```bash
-   cd custom_backend
+1. Clone the repository and navigate to the backend directory:
 
-2. Create a .env file using .env.example as a reference and enter your configuration values.
+    * Clone the repository:
+        ```bash
+        git clone <your-repository-url>
+        cd custom_backend
+2. Set up environment variables:
+
+    * Create a .env file using .env.example as a template
+    * Fill in your local database URL and JWT secret in .env
+
+3. Set up the Postgres database:
+    * Run:
+        ```bash
+        createdb -U postgres <your_db_name>
+        psql -U postgres -d <your_db_name> -f schema.sql
 
 3. Install dependencies and start the server:
-    ```bash
-   npm install
-   npm start
+    * Run:
+        ```bash
+            npm install
+            npm start
 
 ### Appwrite Backend Setup
 
