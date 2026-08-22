@@ -88,11 +88,11 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
-<!-- <script type="module" src="appwrite-adapter.js"></script> type=module and it is using imports -->
+ <!--type=module and it is using imports -->
 
 <script type="module"> //as adpater-js is an ES-module therefore the client script also needs to be a module
-import {configure} from "./lib/appwrite.js"
-import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite, downloadFile} from "./appwrite-adapter.js"
+import {configure} from "./appwrite_backend/lib/appwrite.js"
+import {registerUser, loginUser, logoutUser, getProfile, getAllFiles, getFileByIdAppwrite, downloadFile} from "./appwrite_backend/appwrite-adapter.js"
 
 //get the selected backend mode
 function checkBackendMode(){
