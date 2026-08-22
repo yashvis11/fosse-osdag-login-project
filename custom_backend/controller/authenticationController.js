@@ -98,7 +98,6 @@ const loginUser = async (req, res) => {
     // User found
     const user = result.rows[0];
 
-    console.log(user);
 
     // Check whether the account is locked
     //all the login code will be inside verifyLock's callback as login cannot continue if the user is locked
