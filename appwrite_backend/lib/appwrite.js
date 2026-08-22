@@ -17,7 +17,6 @@ const { Client, Account, Databases, Storage} = window.Appwrite
 //is changed and not when the DOM is loaded
 let appwriteMethods = null
 const configure = (endpoint, projectId) =>{
-  console.log(endpoint)
   const client = new Client().setEndpoint(endpoint)
     .setProject(projectId)
 
