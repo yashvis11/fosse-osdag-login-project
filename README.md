@@ -52,6 +52,9 @@
 
 3. **JWT Structure**: The JWT contains the payload within the token itself removing the need to perform a session table query. While session cookies are preferred for their ease in server-side revocation, JWTs were chosen due to their low server overhead, stateless architecture and dynamic header insertion. On the contrary Appwrite's implementation handles cookie synchronization allowing both the techniques to be used.
 
+4. **Trade-off — Revocation**: Session-based authentication provides easier server-side revocation because a session can be deleted or invalidated immediately. With stateless JWT authentication, an issued token generally remains valid until it expires unless an additional revocation mechanism is implemented.
+Why JWT Was Chosen: JWTs were chosen for the custom backend because they provide a stateless architecture, avoid server-side session storage, and work conveniently with the provided GUI through dynamic insertion of the Authorization header.
+
 ### 3. Logout Mechanics
 
 1. Appwrite Backend (BaaS)
