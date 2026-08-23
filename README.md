@@ -26,6 +26,9 @@
             npm install
             npm start
 
+**File Storage Note:** 
+User-files like resume_alice.pdf and others are stored locally within the `uploads/` directory inside both the custom backend implementation `custom_backend/uploads/`
+
 ### Appwrite Backend Setup
 
 1. Launch index.html using a local server (e.g., VS Code Live Server).
